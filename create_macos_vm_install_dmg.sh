@@ -37,7 +37,7 @@ msg_error() {
 admin_check() {
     # Check that the script is being run by an account with admin rights
     if [[ -z $(id -nG | grep -ow admin) ]]; then
-        msg_error "This script will need to use sudo to run specific functions" 
+        msg_error "This script will need to use sudo to run specific functions"
         msg_error "using root privileges. The $(id -nu) account does not have"
         msg_error "administrator rights associated with it, so it will not be"
         msg_error "able to use sudo."
@@ -98,7 +98,7 @@ fi
 if [[ "$macOS11" = 1 ]]; then
     hdiutil attach "$install_esd/Contents/SharedSupport/SharedSupport.dmg" -quiet -noverify -mountpoint "/Volumes/Shared Support"
     installer_version=$(/usr/libexec/PlistBuddy -c 'Print :Assets:0:OSVersion' "/Volumes/Shared Support/com_apple_MobileAsset_MacSoftwareUpdate/com_apple_MobileAsset_MacSoftwareUpdate.xml")
-    hdiutil detach "/Volumes/Shared Support"* -force -quiet   
+    hdiutil detach "/Volumes/Shared Support"* -force -quiet
 else
     installer_version=$(/usr/libexec/PlistBuddy -c 'Print :System\ Image\ Info:version' "$install_esd/Contents/SharedSupport/InstallInfo.plist")
 fi
@@ -119,12 +119,12 @@ fi
 if [[ -x "$install_esd/Contents/Resources/createinstallmedia" ]]; then
    msg_status "$install_esd/Contents/Resources/createinstallmedia tool detected. Proceeding...."
 else
-   msg_error "The createinstallmedia tool from $install_esd/Contents/Resources is not executable or is missing!" 
+   msg_error "The createinstallmedia tool from $install_esd/Contents/Resources is not executable or is missing!"
    msg_error "This macOS installer application may not be complete or working properly."
    exit 1
 fi
 
-# Creating a temporary disk image in /tmp/ and mounting it. 
+# Creating a temporary disk image in /tmp/ and mounting it.
 # For maximum compatibility, the file system on the disk image is set to use
 # Journaled HFS+.
 
@@ -141,7 +141,7 @@ hdiutil create -o /tmp/"$random_disk_image_name".cdr -size "$disk_image_size"g -
 msg_status "Mounting disk image at /Volumes/$random_disk_image_name"
 hdiutil attach /tmp/"$random_disk_image_name".cdr.dmg -noverify -mountpoint /Volumes/"$random_disk_image_name"
 
-# The createinstallmedia tool requires root privileges to run, so we'll need to request 
+# The createinstallmedia tool requires root privileges to run, so we'll need to request
 # the password of the logged-in user if not already running the script as root.
 
 if [[ $EUID -ne 0 ]]; then
@@ -171,7 +171,9 @@ mv /tmp/"$random_disk_image_name".cdr.dmg "$output_directory"/macOS_"$installer_
 
 msg_status "Unmounting macOS installer disk image."
 
-hdiutil detach "/Volumes/$installer_mounted_volume"* -force -quiet
+for volume in "/Volumes/$installer_mounted_volume"*; do
+	sudo hdiutil detach "$volume" -force -quiet
+done
 
 if [[ -e "/Volumes/Shared Support" ]]; then
    sudo hdiutil detach "/Volumes/Shared Support" -force -quiet
@@ -208,5 +210,5 @@ if [[ "$ISO" == 1 ]]; then
     msg_status "Built .iso disk image file is available at $output_iso"
   else
     msg_error "Build failure! Built .iso disk image file not found! "
-  fi 
+  fi
 fi
